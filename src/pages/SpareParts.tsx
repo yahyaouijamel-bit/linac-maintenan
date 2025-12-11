@@ -31,19 +31,19 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Pencil, Trash2 } from "lucide-react";
-import { mockSpareParts } from "@/data/mockData";
-import { SparePart } from "@/types/cmms";
+import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
+import { useSpareParts, SparePart } from "@/hooks/useSpareParts";
 import { toast } from "@/hooks/use-toast";
 
 const SpareParts = () => {
-  const [parts, setParts] = useState<SparePart[]>(mockSpareParts);
+  const { parts, isLoading, addPart, updatePart, deletePart } = useSpareParts();
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [currentPart, setCurrentPart] = useState<SparePart | null>(null);
   const [formData, setFormData] = useState({
     name: "",
+    partNumber: "",
     location: "",
     acquisitionDate: "",
     installationDate: "",
@@ -53,6 +53,7 @@ const SpareParts = () => {
   const resetForm = () => {
     setFormData({
       name: "",
+      partNumber: "",
       location: "",
       acquisitionDate: "",
       installationDate: "",
@@ -61,12 +62,7 @@ const SpareParts = () => {
   };
 
   const handleAdd = () => {
-    const newPart: SparePart = {
-      id: `sp-${Date.now()}`,
-      ...formData,
-      installationDate: formData.installationDate || undefined,
-    };
-    setParts([...parts, newPart]);
+    addPart(formData);
     setIsAddOpen(false);
     resetForm();
     toast({
@@ -77,17 +73,7 @@ const SpareParts = () => {
 
   const handleEdit = () => {
     if (!currentPart) return;
-    setParts(
-      parts.map((p) =>
-        p.id === currentPart.id
-          ? {
-              ...currentPart,
-              ...formData,
-              installationDate: formData.installationDate || undefined,
-            }
-          : p
-      )
-    );
+    updatePart(currentPart.id, formData);
     setIsEditOpen(false);
     setCurrentPart(null);
     resetForm();
@@ -99,7 +85,7 @@ const SpareParts = () => {
 
   const handleDelete = () => {
     if (!deleteId) return;
-    setParts(parts.filter((p) => p.id !== deleteId));
+    deletePart(deleteId);
     setDeleteId(null);
     toast({
       title: "Pièce supprimée",
@@ -111,6 +97,7 @@ const SpareParts = () => {
     setCurrentPart(part);
     setFormData({
       name: part.name,
+      partNumber: part.partNumber || "",
       location: part.location,
       acquisitionDate: part.acquisitionDate,
       installationDate: part.installationDate || "",
@@ -118,6 +105,14 @@ const SpareParts = () => {
     });
     setIsEditOpen(true);
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   const PartForm = ({ onSubmit }: { onSubmit: () => void }) => (
     <div className="space-y-4">
@@ -132,6 +127,17 @@ const SpareParts = () => {
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
+          <Label htmlFor="partNumber">Référence</Label>
+          <Input
+            id="partNumber"
+            value={formData.partNumber}
+            onChange={(e) =>
+              setFormData({ ...formData, partNumber: e.target.value })
+            }
+            placeholder="Ex: MOD-HV-001"
+          />
+        </div>
+        <div className="space-y-2">
           <Label htmlFor="location">Emplacement</Label>
           <Input
             id="location"
@@ -142,6 +148,8 @@ const SpareParts = () => {
             placeholder="Ex: Magasin A - Étagère 3"
           />
         </div>
+      </div>
+      <div className="grid grid-cols-3 gap-4">
         <div className="space-y-2">
           <Label htmlFor="quantity">Quantité</Label>
           <Input
@@ -154,10 +162,8 @@ const SpareParts = () => {
             }
           />
         </div>
-      </div>
-      <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="acquisitionDate">Date d'acquisition</Label>
+          <Label htmlFor="acquisitionDate">Acquisition</Label>
           <Input
             id="acquisitionDate"
             type="date"
@@ -168,7 +174,7 @@ const SpareParts = () => {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="installationDate">Date d'installation</Label>
+          <Label htmlFor="installationDate">Installation</Label>
           <Input
             id="installationDate"
             type="date"
@@ -216,6 +222,7 @@ const SpareParts = () => {
             <TableHeader>
               <TableRow>
                 <TableHead>Nom</TableHead>
+                <TableHead>Référence</TableHead>
                 <TableHead>Emplacement</TableHead>
                 <TableHead>Quantité</TableHead>
                 <TableHead>Acquisition</TableHead>
@@ -227,6 +234,7 @@ const SpareParts = () => {
               {parts.map((part) => (
                 <TableRow key={part.id}>
                   <TableCell className="font-medium">{part.name}</TableCell>
+                  <TableCell className="font-mono text-sm">{part.partNumber}</TableCell>
                   <TableCell>{part.location}</TableCell>
                   <TableCell>
                     <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-medium">
@@ -234,13 +242,13 @@ const SpareParts = () => {
                     </span>
                   </TableCell>
                   <TableCell>
-                    {new Date(part.acquisitionDate).toLocaleDateString("fr-FR")}
+                    {part.acquisitionDate
+                      ? new Date(part.acquisitionDate).toLocaleDateString("fr-FR")
+                      : "-"}
                   </TableCell>
                   <TableCell>
                     {part.installationDate
-                      ? new Date(part.installationDate).toLocaleDateString(
-                          "fr-FR"
-                        )
+                      ? new Date(part.installationDate).toLocaleDateString("fr-FR")
                       : "-"}
                   </TableCell>
                   <TableCell className="text-right">
@@ -266,7 +274,7 @@ const SpareParts = () => {
               {parts.length === 0 && (
                 <TableRow>
                   <TableCell
-                    colSpan={6}
+                    colSpan={7}
                     className="text-center text-muted-foreground"
                   >
                     Aucune pièce dans l'inventaire
@@ -278,7 +286,6 @@ const SpareParts = () => {
         </CardContent>
       </Card>
 
-      {/* Edit Dialog */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
         <DialogContent>
           <DialogHeader>
@@ -291,7 +298,6 @@ const SpareParts = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation */}
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>

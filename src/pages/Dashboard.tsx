@@ -12,35 +12,43 @@ import {
   Calendar,
   Download,
   ChevronRight,
+  Loader2,
 } from "lucide-react";
-import {
-  mockEquipments,
-  mockTickets,
-  mockMaintenanceTasks,
-  mockDowntimes,
-} from "@/data/mockData";
 import { Link } from "react-router-dom";
+import { useEquipments } from "@/hooks/useEquipments";
+import { useTickets } from "@/hooks/useTickets";
+import { useMaintenanceTasks } from "@/hooks/useMaintenanceTasks";
+import { useDowntimes } from "@/hooks/useDowntimes";
 
 const Dashboard = () => {
-  const totalEquipments = mockEquipments.length;
-  const downEquipments = mockEquipments.filter(
-    (e) => e.status === "En Panne"
-  ).length;
-  const openTickets = mockTickets.filter((t) => t.status !== "Résolu").length;
-  const highPriorityTickets = mockTickets.filter(
+  const { equipments, isLoading: eqLoading } = useEquipments();
+  const { tickets, isLoading: tkLoading } = useTickets();
+  const { tasks, isLoading: mtLoading } = useMaintenanceTasks();
+  const { downtimes, isLoading: dtLoading } = useDowntimes();
+
+  const isLoading = eqLoading || tkLoading || mtLoading || dtLoading;
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <span className="ml-2 text-muted-foreground">Chargement de la base de données...</span>
+      </div>
+    );
+  }
+
+  const totalEquipments = equipments.length;
+  const downEquipments = equipments.filter((e) => e.status === "En Panne").length;
+  const openTickets = tickets.filter((t) => t.status !== "Résolu").length;
+  const highPriorityTickets = tickets.filter(
     (t) => t.priority === "Haute" && t.status !== "Résolu"
   ).length;
-  const plannedMaintenance = mockMaintenanceTasks.filter(
-    (m) => m.status === "Planifié"
-  ).length;
-  const overdueMaintenance = mockMaintenanceTasks.filter(
-    (m) => m.status === "En retard"
-  ).length;
+  const plannedMaintenance = tasks.filter((m) => m.status === "Planifié").length;
+  const overdueMaintenance = tasks.filter((m) => m.status === "En retard").length;
 
-  // Calculate total downtime for the year
   const calculateTotalDowntime = () => {
     let totalMinutes = 0;
-    mockDowntimes.forEach((dt) => {
+    downtimes.forEach((dt) => {
       const start = new Date(dt.startDate);
       const end = dt.endDate ? new Date(dt.endDate) : new Date();
       totalMinutes += (end.getTime() - start.getTime()) / (1000 * 60);
@@ -50,21 +58,18 @@ const Dashboard = () => {
     return `${hours}h ${minutes}m`;
   };
 
-  const upcomingMaintenance = mockMaintenanceTasks
+  const upcomingMaintenance = tasks
     .filter((m) => m.status !== "Terminé")
     .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
     .slice(0, 5);
 
-  const recentTickets = mockTickets
+  const recentTickets = tickets
     .filter((t) => t.status !== "Résolu")
-    .sort(
-      (a, b) =>
-        new Date(b.openedDate).getTime() - new Date(a.openedDate).getTime()
-    )
+    .sort((a, b) => new Date(b.openedDate).getTime() - new Date(a.openedDate).getTime())
     .slice(0, 5);
 
   const getEquipmentName = (id: string) => {
-    return mockEquipments.find((e) => e.id === id)?.name || "Inconnu";
+    return equipments.find((e) => e.id === id)?.name || "Inconnu";
   };
 
   return (
@@ -79,7 +84,6 @@ const Dashboard = () => {
         </Button>
       </PageHeader>
 
-      {/* KPI Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
         <KPICard
           title="Équipements Totaux"
@@ -110,9 +114,7 @@ const Dashboard = () => {
         />
       </div>
 
-      {/* Quick Views */}
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Upcoming Maintenance */}
         <Card className="animate-fade-in" style={{ animationDelay: "0.1s" }}>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-base font-semibold flex items-center gap-2">
@@ -156,7 +158,6 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Recent Tickets */}
         <Card className="animate-fade-in" style={{ animationDelay: "0.15s" }}>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-base font-semibold flex items-center gap-2">

@@ -39,13 +39,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Download, Pencil, Trash2 } from "lucide-react";
-import { mockEquipments } from "@/data/mockData";
-import { Equipment, EquipmentStatus } from "@/types/cmms";
+import { Plus, Download, Pencil, Trash2, Loader2 } from "lucide-react";
+import { useEquipments, Equipment } from "@/hooks/useEquipments";
 import { toast } from "@/hooks/use-toast";
 
+type EquipmentStatus = Equipment['status'];
+
 const Equipments = () => {
-  const [equipments, setEquipments] = useState<Equipment[]>(mockEquipments);
+  const { equipments, isLoading, addEquipment, updateEquipment, deleteEquipment } = useEquipments();
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -69,11 +70,7 @@ const Equipments = () => {
   };
 
   const handleAdd = () => {
-    const newEquipment: Equipment = {
-      id: `eq-${Date.now()}`,
-      ...formData,
-    };
-    setEquipments([...equipments, newEquipment]);
+    addEquipment(formData);
     setIsAddOpen(false);
     resetForm();
     toast({
@@ -84,11 +81,7 @@ const Equipments = () => {
 
   const handleEdit = () => {
     if (!currentEquipment) return;
-    setEquipments(
-      equipments.map((eq) =>
-        eq.id === currentEquipment.id ? { ...currentEquipment, ...formData } : eq
-      )
-    );
+    updateEquipment(currentEquipment.id, formData);
     setIsEditOpen(false);
     setCurrentEquipment(null);
     resetForm();
@@ -100,7 +93,7 @@ const Equipments = () => {
 
   const handleDelete = () => {
     if (!deleteId) return;
-    setEquipments(equipments.filter((eq) => eq.id !== deleteId));
+    deleteEquipment(deleteId);
     setDeleteId(null);
     toast({
       title: "Équipement supprimé",
@@ -140,6 +133,14 @@ const Equipments = () => {
       description: "Le fichier CSV a été téléchargé.",
     });
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   const EquipmentForm = ({ onSubmit }: { onSubmit: () => void }) => (
     <div className="space-y-4">
@@ -262,9 +263,7 @@ const Equipments = () => {
                     {equipment.serialNumber}
                   </TableCell>
                   <TableCell>
-                    {new Date(equipment.commissioningDate).toLocaleDateString(
-                      "fr-FR"
-                    )}
+                    {new Date(equipment.commissioningDate).toLocaleDateString("fr-FR")}
                   </TableCell>
                   <TableCell>
                     <StatusBadge status={equipment.status} />
@@ -294,7 +293,6 @@ const Equipments = () => {
         </CardContent>
       </Card>
 
-      {/* Edit Dialog */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
         <DialogContent>
           <DialogHeader>
@@ -307,7 +305,6 @@ const Equipments = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation */}
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
