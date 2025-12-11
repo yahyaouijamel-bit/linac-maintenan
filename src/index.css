@@ -1,0 +1,161 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@import "@fontsource/dm-sans/400.css";
+@import "@fontsource/dm-sans/500.css";
+@import "@fontsource/dm-sans/600.css";
+@import "@fontsource/dm-sans/700.css";
+
+/* Linac CMMS Design System - Industrial/Medical Professional Theme */
+
+@layer base {
+  :root {
+    --background: 210 20% 98%;
+    --foreground: 210 40% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 210 40% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 210 40% 11%;
+
+    --primary: 174 62% 32%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 20% 94%;
+    --secondary-foreground: 210 40% 11%;
+
+    --muted: 210 15% 92%;
+    --muted-foreground: 210 15% 45%;
+
+    --accent: 174 45% 90%;
+    --accent-foreground: 174 62% 25%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 210 20% 88%;
+    --input: 210 20% 88%;
+    --ring: 174 62% 32%;
+
+    --radius: 0.625rem;
+
+    /* Status colors */
+    --status-operational: 142 71% 45%;
+    --status-maintenance: 38 92% 50%;
+    --status-down: 0 72% 51%;
+
+    /* Priority colors */
+    --priority-high: 0 72% 51%;
+    --priority-medium: 38 92% 50%;
+    --priority-low: 210 15% 55%;
+
+    /* Chart colors */
+    --chart-1: 174 62% 32%;
+    --chart-2: 38 92% 50%;
+    --chart-3: 142 71% 45%;
+    --chart-4: 0 72% 51%;
+    --chart-5: 210 60% 50%;
+
+    --sidebar-background: 210 40% 11%;
+    --sidebar-foreground: 210 20% 85%;
+    --sidebar-primary: 174 62% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 35% 18%;
+    --sidebar-accent-foreground: 210 20% 95%;
+    --sidebar-border: 210 30% 18%;
+    --sidebar-ring: 174 62% 45%;
+  }
+
+  .dark {
+    --background: 210 40% 7%;
+    --foreground: 210 20% 95%;
+
+    --card: 210 35% 10%;
+    --card-foreground: 210 20% 95%;
+
+    --popover: 210 35% 10%;
+    --popover-foreground: 210 20% 95%;
+
+    --primary: 174 62% 45%;
+    --primary-foreground: 210 40% 7%;
+
+    --secondary: 210 30% 15%;
+    --secondary-foreground: 210 20% 95%;
+
+    --muted: 210 25% 18%;
+    --muted-foreground: 210 15% 60%;
+
+    --accent: 174 45% 20%;
+    --accent-foreground: 174 62% 70%;
+
+    --destructive: 0 62% 45%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 210 25% 18%;
+    --input: 210 25% 18%;
+    --ring: 174 62% 45%;
+
+    --sidebar-background: 210 45% 5%;
+    --sidebar-foreground: 210 20% 85%;
+    --sidebar-primary: 174 62% 50%;
+    --sidebar-primary-foreground: 210 40% 7%;
+    --sidebar-accent: 210 35% 12%;
+    --sidebar-accent-foreground: 210 20% 95%;
+    --sidebar-border: 210 30% 12%;
+    --sidebar-ring: 174 62% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: "DM Sans", sans-serif;
+  }
+}
+
+@layer components {
+  .status-badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .status-operational {
+    @apply bg-[hsl(var(--status-operational)/0.15)] text-[hsl(var(--status-operational))];
+  }
+
+  .status-maintenance {
+    @apply bg-[hsl(var(--status-maintenance)/0.15)] text-[hsl(var(--status-maintenance))];
+  }
+
+  .status-down {
+    @apply bg-[hsl(var(--status-down)/0.15)] text-[hsl(var(--status-down))];
+  }
+
+  .priority-high {
+    @apply bg-[hsl(var(--priority-high)/0.15)] text-[hsl(var(--priority-high))];
+  }
+
+  .priority-medium {
+    @apply bg-[hsl(var(--priority-medium)/0.15)] text-[hsl(var(--priority-medium))];
+  }
+
+  .priority-low {
+    @apply bg-[hsl(var(--priority-low)/0.15)] text-[hsl(var(--priority-low))];
+  }
+
+  .kpi-card {
+    @apply relative overflow-hidden rounded-xl border bg-card p-6 shadow-sm transition-all hover:shadow-md;
+  }
+
+  .kpi-value {
+    @apply text-3xl font-bold tracking-tight;
+  }
+
+  .kpi-label {
+    @apply text-sm font-medium text-muted-foreground;
+  }
+}
