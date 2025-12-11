@@ -30,19 +30,22 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Clock } from "lucide-react";
-import { mockDowntimes, mockEquipments } from "@/data/mockData";
-import { Downtime } from "@/types/cmms";
+import { Plus, Clock, Loader2 } from "lucide-react";
+import { useDowntimes, Downtime } from "@/hooks/useDowntimes";
+import { useEquipments } from "@/hooks/useEquipments";
 import { toast } from "@/hooks/use-toast";
 
 const Downtimes = () => {
-  const [downtimes, setDowntimes] = useState<Downtime[]>(mockDowntimes);
+  const { downtimes, isLoading: dtLoading, addDowntime, resolveDowntime } = useDowntimes();
+  const { equipments, isLoading: eqLoading } = useEquipments();
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [formData, setFormData] = useState({
     equipmentId: "",
     reason: "",
     startDate: "",
   });
+
+  const isLoading = dtLoading || eqLoading;
 
   const resetForm = () => {
     setFormData({
@@ -53,12 +56,7 @@ const Downtimes = () => {
   };
 
   const handleAdd = () => {
-    const newDowntime: Downtime = {
-      id: `dt-${Date.now()}`,
-      ...formData,
-      status: "En cours",
-    };
-    setDowntimes([newDowntime, ...downtimes]);
+    addDowntime(formData);
     setIsAddOpen(false);
     resetForm();
     toast({
@@ -67,12 +65,8 @@ const Downtimes = () => {
     });
   };
 
-  const resolveDowntime = (id: string, endDate: string) => {
-    setDowntimes(
-      downtimes.map((dt) =>
-        dt.id === id ? { ...dt, endDate, status: "Résolu" as const } : dt
-      )
-    );
+  const handleResolve = (id: string) => {
+    resolveDowntime(id);
     toast({
       title: "Arrêt résolu",
       description: "L'arrêt machine a été marqué comme résolu.",
@@ -80,7 +74,7 @@ const Downtimes = () => {
   };
 
   const getEquipmentName = (id: string) => {
-    return mockEquipments.find((e) => e.id === id)?.name || "Inconnu";
+    return equipments.find((e) => e.id === id)?.name || "Inconnu";
   };
 
   const calculateDuration = (start: string, end?: string) => {
@@ -92,10 +86,17 @@ const Downtimes = () => {
     return `${hours}h ${minutes}m`;
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   const activeDowntimes = downtimes.filter((dt) => dt.status === "En cours");
   const resolvedDowntimes = downtimes.filter((dt) => dt.status === "Résolu");
 
-  // Calculate yearly totals
   const currentYear = new Date().getFullYear();
   const yearlyTotal = downtimes
     .filter((dt) => new Date(dt.startDate).getFullYear() === currentYear)
@@ -147,9 +148,7 @@ const Downtimes = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() =>
-                    resolveDowntime(downtime.id, new Date().toISOString())
-                  }
+                  onClick={() => handleResolve(downtime.id)}
                 >
                   Résoudre
                 </Button>
@@ -201,7 +200,7 @@ const Downtimes = () => {
                     <SelectValue placeholder="Sélectionner l'équipement" />
                   </SelectTrigger>
                   <SelectContent>
-                    {mockEquipments.map((eq) => (
+                    {equipments.map((eq) => (
                       <SelectItem key={eq.id} value={eq.id}>
                         {eq.name}
                       </SelectItem>
@@ -239,7 +238,6 @@ const Downtimes = () => {
         </Dialog>
       </PageHeader>
 
-      {/* Yearly Summary */}
       <Card className="mb-6">
         <CardHeader className="pb-3">
           <CardTitle className="text-base font-semibold flex items-center gap-2">
@@ -259,7 +257,6 @@ const Downtimes = () => {
         </CardContent>
       </Card>
 
-      {/* Downtimes Tabs */}
       <Tabs defaultValue="active">
         <TabsList className="mb-4">
           <TabsTrigger value="active" className="gap-2">

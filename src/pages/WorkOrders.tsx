@@ -30,7 +30,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -40,25 +39,29 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Trash2 } from "lucide-react";
-import {
-  mockWorkOrders,
-  mockEquipments,
-  mockTechnicians,
-} from "@/data/mockData";
-import { WorkOrder, WorkOrderStatus, TicketPriority } from "@/types/cmms";
+import { Plus, Trash2, Loader2 } from "lucide-react";
+import { useWorkOrders, WorkOrder } from "@/hooks/useWorkOrders";
+import { useEquipments } from "@/hooks/useEquipments";
+import { useTechnicians } from "@/hooks/useTechnicians";
 import { toast } from "@/hooks/use-toast";
 
+type WorkOrderStatus = WorkOrder['status'];
+type Priority = WorkOrder['priority'];
+
 const WorkOrders = () => {
-  const [workOrders, setWorkOrders] = useState<WorkOrder[]>(mockWorkOrders);
+  const { workOrders, isLoading: woLoading, addWorkOrder, updateStatus, deleteWorkOrder } = useWorkOrders();
+  const { equipments, isLoading: eqLoading } = useEquipments();
+  const { technicians, isLoading: techLoading } = useTechnicians();
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     equipmentId: "",
     description: "",
     technicianId: "",
-    priority: "Moyenne" as TicketPriority,
+    priority: "Moyenne" as Priority,
   });
+
+  const isLoading = woLoading || eqLoading || techLoading;
 
   const resetForm = () => {
     setFormData({
@@ -70,13 +73,7 @@ const WorkOrders = () => {
   };
 
   const handleAdd = () => {
-    const newWorkOrder: WorkOrder = {
-      id: `wo-${Date.now()}`,
-      ...formData,
-      status: "Ouvert",
-      createdDate: new Date().toISOString().split("T")[0],
-    };
-    setWorkOrders([newWorkOrder, ...workOrders]);
+    addWorkOrder(formData);
     setIsAddOpen(false);
     resetForm();
     toast({
@@ -87,7 +84,7 @@ const WorkOrders = () => {
 
   const handleDelete = () => {
     if (!deleteId) return;
-    setWorkOrders(workOrders.filter((wo) => wo.id !== deleteId));
+    deleteWorkOrder(deleteId);
     setDeleteId(null);
     toast({
       title: "Bon de travail supprimé",
@@ -95,12 +92,8 @@ const WorkOrders = () => {
     });
   };
 
-  const updateStatus = (id: string, newStatus: WorkOrderStatus) => {
-    setWorkOrders(
-      workOrders.map((wo) =>
-        wo.id === id ? { ...wo, status: newStatus } : wo
-      )
-    );
+  const handleUpdateStatus = (id: string, newStatus: WorkOrderStatus) => {
+    updateStatus(id, newStatus);
     toast({
       title: "Statut mis à jour",
       description: `Le bon de travail a été marqué comme "${newStatus}".`,
@@ -108,12 +101,20 @@ const WorkOrders = () => {
   };
 
   const getEquipmentName = (id: string) => {
-    return mockEquipments.find((e) => e.id === id)?.name || "Inconnu";
+    return equipments.find((e) => e.id === id)?.name || "Inconnu";
   };
 
   const getTechnicianName = (id: string) => {
-    return mockTechnicians.find((t) => t.id === id)?.name || "Non assigné";
+    return technicians.find((t) => t.id === id)?.name || "Non assigné";
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <>
@@ -148,7 +149,7 @@ const WorkOrders = () => {
                     <SelectValue placeholder="Sélectionner l'équipement" />
                   </SelectTrigger>
                   <SelectContent>
-                    {mockEquipments.map((eq) => (
+                    {equipments.map((eq) => (
                       <SelectItem key={eq.id} value={eq.id}>
                         {eq.name}
                       </SelectItem>
@@ -181,7 +182,7 @@ const WorkOrders = () => {
                       <SelectValue placeholder="Assigner" />
                     </SelectTrigger>
                     <SelectContent>
-                      {mockTechnicians.map((tech) => (
+                      {technicians.map((tech) => (
                         <SelectItem key={tech.id} value={tech.id}>
                           {tech.name}
                         </SelectItem>
@@ -193,7 +194,7 @@ const WorkOrders = () => {
                   <Label htmlFor="priority">Priorité</Label>
                   <Select
                     value={formData.priority}
-                    onValueChange={(value: TicketPriority) =>
+                    onValueChange={(value: Priority) =>
                       setFormData({ ...formData, priority: value })
                     }
                   >
@@ -246,7 +247,7 @@ const WorkOrders = () => {
                     <Select
                       value={wo.status}
                       onValueChange={(value: WorkOrderStatus) =>
-                        updateStatus(wo.id, value)
+                        handleUpdateStatus(wo.id, value)
                       }
                     >
                       <SelectTrigger className="w-28 h-8">
@@ -285,7 +286,6 @@ const WorkOrders = () => {
         </CardContent>
       </Card>
 
-      {/* Delete Confirmation */}
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>

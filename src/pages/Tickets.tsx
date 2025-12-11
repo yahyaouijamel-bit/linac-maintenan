@@ -30,13 +30,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Eye } from "lucide-react";
-import { mockTickets, mockEquipments } from "@/data/mockData";
-import { Ticket, TicketPriority, TicketStatus } from "@/types/cmms";
+import { Plus, Eye, Loader2 } from "lucide-react";
+import { useTickets, Ticket } from "@/hooks/useTickets";
+import { useEquipments } from "@/hooks/useEquipments";
 import { toast } from "@/hooks/use-toast";
 
+type TicketPriority = Ticket['priority'];
+type TicketStatus = Ticket['status'];
+
 const Tickets = () => {
-  const [tickets, setTickets] = useState<Ticket[]>(mockTickets);
+  const { tickets, isLoading: tkLoading, addTicket, updateTicketStatus } = useTickets();
+  const { equipments, isLoading: eqLoading } = useEquipments();
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [viewTicket, setViewTicket] = useState<Ticket | null>(null);
   const [formData, setFormData] = useState({
@@ -45,6 +49,8 @@ const Tickets = () => {
     equipmentId: "",
     priority: "Moyenne" as TicketPriority,
   });
+
+  const isLoading = tkLoading || eqLoading;
 
   const resetForm = () => {
     setFormData({
@@ -56,29 +62,17 @@ const Tickets = () => {
   };
 
   const handleAdd = () => {
-    const ticketNumber = `TK-${new Date().getFullYear()}-${String(tickets.length + 1).padStart(3, "0")}`;
-    const newTicket: Ticket = {
-      id: `tk-${Date.now()}`,
-      number: ticketNumber,
-      ...formData,
-      openedDate: new Date().toISOString().split("T")[0],
-      status: "Ouvert",
-    };
-    setTickets([newTicket, ...tickets]);
+    addTicket(formData);
     setIsAddOpen(false);
     resetForm();
     toast({
       title: "Ticket créé",
-      description: `${ticketNumber} a été créé avec succès.`,
+      description: "Le ticket a été créé avec succès.",
     });
   };
 
   const updateStatus = (ticketId: string, newStatus: TicketStatus) => {
-    setTickets(
-      tickets.map((t) =>
-        t.id === ticketId ? { ...t, status: newStatus } : t
-      )
-    );
+    updateTicketStatus(ticketId, newStatus);
     toast({
       title: "Statut mis à jour",
       description: `Le ticket a été marqué comme "${newStatus}".`,
@@ -86,8 +80,16 @@ const Tickets = () => {
   };
 
   const getEquipmentName = (id: string) => {
-    return mockEquipments.find((e) => e.id === id)?.name || "Inconnu";
+    return equipments.find((e) => e.id === id)?.name || "Inconnu";
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <>
@@ -146,7 +148,7 @@ const Tickets = () => {
                       <SelectValue placeholder="Sélectionner" />
                     </SelectTrigger>
                     <SelectContent>
-                      {mockEquipments.map((eq) => (
+                      {equipments.map((eq) => (
                         <SelectItem key={eq.id} value={eq.id}>
                           {eq.name}
                         </SelectItem>
@@ -244,7 +246,6 @@ const Tickets = () => {
         </CardContent>
       </Card>
 
-      {/* View Ticket Dialog */}
       <Dialog open={!!viewTicket} onOpenChange={() => setViewTicket(null)}>
         <DialogContent>
           <DialogHeader>

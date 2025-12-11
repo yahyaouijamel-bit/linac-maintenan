@@ -31,13 +31,12 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Pencil, Trash2, Mail, Phone } from "lucide-react";
-import { mockTechnicians } from "@/data/mockData";
-import { Technician } from "@/types/cmms";
+import { Plus, Pencil, Trash2, Mail, Phone, Loader2 } from "lucide-react";
+import { useTechnicians, Technician } from "@/hooks/useTechnicians";
 import { toast } from "@/hooks/use-toast";
 
 const Technicians = () => {
-  const [technicians, setTechnicians] = useState<Technician[]>(mockTechnicians);
+  const { technicians, isLoading, addTechnician, updateTechnician, deleteTechnician } = useTechnicians();
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -59,11 +58,7 @@ const Technicians = () => {
   };
 
   const handleAdd = () => {
-    const newTech: Technician = {
-      id: `tech-${Date.now()}`,
-      ...formData,
-    };
-    setTechnicians([...technicians, newTech]);
+    addTechnician(formData);
     setIsAddOpen(false);
     resetForm();
     toast({
@@ -74,11 +69,7 @@ const Technicians = () => {
 
   const handleEdit = () => {
     if (!currentTech) return;
-    setTechnicians(
-      technicians.map((t) =>
-        t.id === currentTech.id ? { ...currentTech, ...formData } : t
-      )
-    );
+    updateTechnician(currentTech.id, formData);
     setIsEditOpen(false);
     setCurrentTech(null);
     resetForm();
@@ -90,7 +81,7 @@ const Technicians = () => {
 
   const handleDelete = () => {
     if (!deleteId) return;
-    setTechnicians(technicians.filter((t) => t.id !== deleteId));
+    deleteTechnician(deleteId);
     setDeleteId(null);
     toast({
       title: "Technicien supprimé",
@@ -108,6 +99,14 @@ const Technicians = () => {
     });
     setIsEditOpen(true);
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   const TechForm = ({ onSubmit }: { onSubmit: () => void }) => (
     <div className="space-y-4">
@@ -255,7 +254,6 @@ const Technicians = () => {
         </CardContent>
       </Card>
 
-      {/* Edit Dialog */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
         <DialogContent>
           <DialogHeader>
@@ -268,7 +266,6 @@ const Technicians = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation */}
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>

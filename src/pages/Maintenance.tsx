@@ -40,13 +40,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Pencil, Trash2 } from "lucide-react";
-import { mockMaintenanceTasks, mockEquipments } from "@/data/mockData";
-import { MaintenanceTask, MaintenanceStatus } from "@/types/cmms";
+import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
+import { useMaintenanceTasks, MaintenanceTask } from "@/hooks/useMaintenanceTasks";
+import { useEquipments } from "@/hooks/useEquipments";
 import { toast } from "@/hooks/use-toast";
 
+type MaintenanceStatus = MaintenanceTask['status'];
+
 const Maintenance = () => {
-  const [tasks, setTasks] = useState<MaintenanceTask[]>(mockMaintenanceTasks);
+  const { tasks, isLoading: mtLoading, addTask, updateTask, deleteTask } = useMaintenanceTasks();
+  const { equipments, isLoading: eqLoading } = useEquipments();
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -58,6 +61,8 @@ const Maintenance = () => {
     status: "Planifié" as MaintenanceStatus,
   });
 
+  const isLoading = mtLoading || eqLoading;
+
   const resetForm = () => {
     setFormData({
       task: "",
@@ -68,11 +73,7 @@ const Maintenance = () => {
   };
 
   const handleAdd = () => {
-    const newTask: MaintenanceTask = {
-      id: `mt-${Date.now()}`,
-      ...formData,
-    };
-    setTasks([...tasks, newTask]);
+    addTask(formData);
     setIsAddOpen(false);
     resetForm();
     toast({
@@ -83,11 +84,7 @@ const Maintenance = () => {
 
   const handleEdit = () => {
     if (!currentTask) return;
-    setTasks(
-      tasks.map((t) =>
-        t.id === currentTask.id ? { ...currentTask, ...formData } : t
-      )
-    );
+    updateTask(currentTask.id, formData);
     setIsEditOpen(false);
     setCurrentTask(null);
     resetForm();
@@ -99,7 +96,7 @@ const Maintenance = () => {
 
   const handleDelete = () => {
     if (!deleteId) return;
-    setTasks(tasks.filter((t) => t.id !== deleteId));
+    deleteTask(deleteId);
     setDeleteId(null);
     toast({
       title: "Tâche supprimée",
@@ -119,8 +116,16 @@ const Maintenance = () => {
   };
 
   const getEquipmentName = (id: string) => {
-    return mockEquipments.find((e) => e.id === id)?.name || "Inconnu";
+    return equipments.find((e) => e.id === id)?.name || "Inconnu";
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   const plannedTasks = tasks.filter((t) => t.status === "Planifié");
   const overdueTasks = tasks.filter((t) => t.status === "En retard");
@@ -150,7 +155,7 @@ const Maintenance = () => {
               <SelectValue placeholder="Sélectionner" />
             </SelectTrigger>
             <SelectContent>
-              {mockEquipments.map((eq) => (
+              {equipments.map((eq) => (
                 <SelectItem key={eq.id} value={eq.id}>
                   {eq.name}
                 </SelectItem>
@@ -313,7 +318,6 @@ const Maintenance = () => {
         </TabsContent>
       </Tabs>
 
-      {/* Edit Dialog */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
         <DialogContent>
           <DialogHeader>
@@ -326,7 +330,6 @@ const Maintenance = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation */}
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
