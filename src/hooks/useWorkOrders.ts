@@ -79,5 +79,19 @@ export function useWorkOrders() {
     fetchWorkOrders();
   }, [fetchWorkOrders]);
 
-  return { workOrders, isLoading: dbLoading || isLoading, addWorkOrder, updateStatus, deleteWorkOrder, refresh: fetchWorkOrders };
+  const updateWorkOrder = useCallback((id: string, wo: Partial<Omit<WorkOrder, 'id' | 'createdDate' | 'completedDate'>>) => {
+    const updates: string[] = [];
+    const values: (string | null)[] = [];
+    if (wo.equipmentId !== undefined) { updates.push('equipment_id = ?'); values.push(wo.equipmentId); }
+    if (wo.description !== undefined) { updates.push('description = ?'); values.push(wo.description); }
+    if (wo.technicianId !== undefined) { updates.push('assigned_to = ?'); values.push(wo.technicianId || null); }
+    if (wo.priority !== undefined) { updates.push('priority = ?'); values.push(priorityMapReverse[wo.priority]); }
+    if (updates.length > 0) {
+      values.push(id);
+      runCommand(`UPDATE work_orders SET ${updates.join(', ')} WHERE id = ?`, values);
+      fetchWorkOrders();
+    }
+  }, [fetchWorkOrders]);
+
+  return { workOrders, isLoading: dbLoading || isLoading, addWorkOrder, updateStatus, deleteWorkOrder, updateWorkOrder, refresh: fetchWorkOrders };
 }

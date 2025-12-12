@@ -79,5 +79,19 @@ export function useTickets() {
     fetchTickets();
   }, [fetchTickets]);
 
-  return { tickets, isLoading: dbLoading || isLoading, addTicket, updateTicketStatus, refresh: fetchTickets };
+  const updateTicket = useCallback((id: string, ticket: Partial<Omit<Ticket, 'id' | 'number' | 'openedDate'>>) => {
+    const updates: string[] = [];
+    const values: (string | null)[] = [];
+    if (ticket.subject !== undefined) { updates.push('subject = ?'); values.push(ticket.subject); }
+    if (ticket.description !== undefined) { updates.push('description = ?'); values.push(ticket.description); }
+    if (ticket.equipmentId !== undefined) { updates.push('equipment_id = ?'); values.push(ticket.equipmentId); }
+    if (ticket.priority !== undefined) { updates.push('priority = ?'); values.push(priorityMapReverse[ticket.priority]); }
+    if (updates.length > 0) {
+      values.push(id);
+      runCommand(`UPDATE tickets SET ${updates.join(', ')} WHERE id = ?`, values);
+      fetchTickets();
+    }
+  }, [fetchTickets]);
+
+  return { tickets, isLoading: dbLoading || isLoading, addTicket, updateTicketStatus, updateTicket, refresh: fetchTickets };
 }
