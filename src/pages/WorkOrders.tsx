@@ -39,7 +39,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Trash2, Loader2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
 import { useWorkOrders, WorkOrder } from "@/hooks/useWorkOrders";
 import { useEquipments } from "@/hooks/useEquipments";
 import { useTechnicians } from "@/hooks/useTechnicians";
@@ -49,11 +49,13 @@ type WorkOrderStatus = WorkOrder['status'];
 type Priority = WorkOrder['priority'];
 
 const WorkOrders = () => {
-  const { workOrders, isLoading: woLoading, addWorkOrder, updateStatus, deleteWorkOrder } = useWorkOrders();
+  const { workOrders, isLoading: woLoading, addWorkOrder, updateStatus, deleteWorkOrder, updateWorkOrder } = useWorkOrders();
   const { equipments, isLoading: eqLoading } = useEquipments();
   const { technicians, isLoading: techLoading } = useTechnicians();
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [currentWorkOrder, setCurrentWorkOrder] = useState<WorkOrder | null>(null);
   const [formData, setFormData] = useState({
     equipmentId: "",
     description: "",
@@ -98,6 +100,29 @@ const WorkOrders = () => {
       title: "Statut mis à jour",
       description: `Le bon de travail a été marqué comme "${newStatus}".`,
     });
+  };
+
+  const handleEdit = () => {
+    if (!currentWorkOrder) return;
+    updateWorkOrder(currentWorkOrder.id, formData);
+    setIsEditOpen(false);
+    setCurrentWorkOrder(null);
+    resetForm();
+    toast({
+      title: "Bon de travail modifié",
+      description: "Les informations ont été mises à jour.",
+    });
+  };
+
+  const openEdit = (wo: WorkOrder) => {
+    setCurrentWorkOrder(wo);
+    setFormData({
+      equipmentId: wo.equipmentId,
+      description: wo.description,
+      technicianId: wo.technicianId,
+      priority: wo.priority,
+    });
+    setIsEditOpen(true);
   };
 
   const getEquipmentName = (id: string) => {
@@ -261,13 +286,22 @@ const WorkOrders = () => {
                     </Select>
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setDeleteId(wo.id)}
-                    >
-                      <Trash2 className="w-4 h-4 text-destructive" />
-                    </Button>
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => openEdit(wo)}
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setDeleteId(wo.id)}
+                      >
+                        <Trash2 className="w-4 h-4 text-destructive" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
@@ -305,6 +339,93 @@ const WorkOrders = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Modifier le bon de travail</DialogTitle>
+            <DialogDescription>
+              Modifiez les informations du bon de travail.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-equipment">Équipement</Label>
+              <Select
+                value={formData.equipmentId}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, equipmentId: value })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {equipments.map((eq) => (
+                    <SelectItem key={eq.id} value={eq.id}>
+                      {eq.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-description">Description des travaux</Label>
+              <Textarea
+                id="edit-description"
+                value={formData.description}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
+                rows={3}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-technician">Technicien</Label>
+                <Select
+                  value={formData.technicianId}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, technicianId: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {technicians.map((tech) => (
+                      <SelectItem key={tech.id} value={tech.id}>
+                        {tech.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-priority">Priorité</Label>
+                <Select
+                  value={formData.priority}
+                  onValueChange={(value: Priority) =>
+                    setFormData({ ...formData, priority: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Haute">Haute</SelectItem>
+                    <SelectItem value="Moyenne">Moyenne</SelectItem>
+                    <SelectItem value="Basse">Basse</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button onClick={handleEdit}>Enregistrer</Button>
+            </DialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

@@ -30,7 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Eye, Loader2 } from "lucide-react";
+import { Plus, Eye, Pencil, Loader2 } from "lucide-react";
 import { useTickets, Ticket } from "@/hooks/useTickets";
 import { useEquipments } from "@/hooks/useEquipments";
 import { toast } from "@/hooks/use-toast";
@@ -39,10 +39,12 @@ type TicketPriority = Ticket['priority'];
 type TicketStatus = Ticket['status'];
 
 const Tickets = () => {
-  const { tickets, isLoading: tkLoading, addTicket, updateTicketStatus } = useTickets();
+  const { tickets, isLoading: tkLoading, addTicket, updateTicketStatus, updateTicket } = useTickets();
   const { equipments, isLoading: eqLoading } = useEquipments();
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
   const [viewTicket, setViewTicket] = useState<Ticket | null>(null);
+  const [currentTicket, setCurrentTicket] = useState<Ticket | null>(null);
   const [formData, setFormData] = useState({
     subject: "",
     description: "",
@@ -69,6 +71,29 @@ const Tickets = () => {
       title: "Ticket créé",
       description: "Le ticket a été créé avec succès.",
     });
+  };
+
+  const handleEdit = () => {
+    if (!currentTicket) return;
+    updateTicket(currentTicket.id, formData);
+    setIsEditOpen(false);
+    setCurrentTicket(null);
+    resetForm();
+    toast({
+      title: "Ticket modifié",
+      description: "Les informations ont été mises à jour.",
+    });
+  };
+
+  const openEdit = (ticket: Ticket) => {
+    setCurrentTicket(ticket);
+    setFormData({
+      subject: ticket.subject,
+      description: ticket.description,
+      equipmentId: ticket.equipmentId,
+      priority: ticket.priority,
+    });
+    setIsEditOpen(true);
   };
 
   const updateStatus = (ticketId: string, newStatus: TicketStatus) => {
@@ -231,13 +256,22 @@ const Tickets = () => {
                     </Select>
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setViewTicket(ticket)}
-                    >
-                      <Eye className="w-4 h-4" />
-                    </Button>
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => openEdit(ticket)}
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setViewTicket(ticket)}
+                      >
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
@@ -286,6 +320,83 @@ const Tickets = () => {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Modifier le ticket</DialogTitle>
+            <DialogDescription>
+              Modifiez les informations du ticket.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-subject">Sujet</Label>
+              <Input
+                id="edit-subject"
+                value={formData.subject}
+                onChange={(e) =>
+                  setFormData({ ...formData, subject: e.target.value })
+                }
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-description">Description</Label>
+              <Textarea
+                id="edit-description"
+                value={formData.description}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
+                rows={4}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-equipment">Équipement</Label>
+                <Select
+                  value={formData.equipmentId}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, equipmentId: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {equipments.map((eq) => (
+                      <SelectItem key={eq.id} value={eq.id}>
+                        {eq.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-priority">Priorité</Label>
+                <Select
+                  value={formData.priority}
+                  onValueChange={(value: TicketPriority) =>
+                    setFormData({ ...formData, priority: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Haute">Haute</SelectItem>
+                    <SelectItem value="Moyenne">Moyenne</SelectItem>
+                    <SelectItem value="Basse">Basse</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button onClick={handleEdit}>Enregistrer</Button>
+            </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
     </>
