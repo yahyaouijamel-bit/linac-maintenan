@@ -7,6 +7,7 @@ interface DatabaseContextType {
   isLoading: boolean;
   error: Error | null;
   refresh: () => void;
+  exportDatabase: () => void;
 }
 
 const DatabaseContext = createContext<DatabaseContextType | undefined>(undefined);
@@ -32,8 +33,20 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
 
   const refresh = () => setRefreshKey((k) => k + 1);
 
+  const exportDatabase = () => {
+    if (!db) return;
+    const data = db.export();
+    const blob = new Blob([data], { type: 'application/octet-stream' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `cmms-backup-${new Date().toISOString().split('T')[0]}.sqlite`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
-    <DatabaseContext.Provider value={{ db, isLoading, error, refresh }}>
+    <DatabaseContext.Provider value={{ db, isLoading, error, refresh, exportDatabase }}>
       {children}
     </DatabaseContext.Provider>
   );

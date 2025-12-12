@@ -19,14 +19,25 @@ import { useEquipments } from "@/hooks/useEquipments";
 import { useTickets } from "@/hooks/useTickets";
 import { useMaintenanceTasks } from "@/hooks/useMaintenanceTasks";
 import { useDowntimes } from "@/hooks/useDowntimes";
+import { useDb } from "@/contexts/DatabaseContext";
+import { toast } from "@/hooks/use-toast";
 
 const Dashboard = () => {
   const { equipments, isLoading: eqLoading } = useEquipments();
   const { tickets, isLoading: tkLoading } = useTickets();
   const { tasks, isLoading: mtLoading } = useMaintenanceTasks();
   const { downtimes, isLoading: dtLoading } = useDowntimes();
+  const { exportDatabase } = useDb();
 
   const isLoading = eqLoading || tkLoading || mtLoading || dtLoading;
+
+  const handleExport = () => {
+    exportDatabase();
+    toast({
+      title: "Export réussi",
+      description: "La base de données a été téléchargée.",
+    });
+  };
 
   if (isLoading) {
     return (
@@ -78,7 +89,7 @@ const Dashboard = () => {
         title="Tableau de Bord"
         description="Vue d'ensemble de l'état du parc machine"
       >
-        <Button variant="outline" className="gap-2">
+        <Button variant="outline" className="gap-2" onClick={handleExport}>
           <Download className="w-4 h-4" />
           Exporter Archive
         </Button>
