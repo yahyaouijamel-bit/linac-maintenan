@@ -207,7 +207,7 @@ const Equipments = () => {
         </div>
       </div>
       <DialogFooter>
-        <Button onClick={onSubmit}>Enregistrer</Button>
+        <Button type="button" onClick={onSubmit}>Enregistrer</Button>
       </DialogFooter>
     </div>
   );
