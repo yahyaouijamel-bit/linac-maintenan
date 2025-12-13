@@ -231,7 +231,7 @@ const Downtimes = () => {
                 />
               </div>
               <DialogFooter>
-                <Button onClick={handleAdd}>Enregistrer</Button>
+                <Button type="button" onClick={handleAdd}>Enregistrer</Button>
               </DialogFooter>
             </div>
           </DialogContent>

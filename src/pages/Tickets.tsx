@@ -201,7 +201,7 @@ const Tickets = () => {
                 </div>
               </div>
               <DialogFooter>
-                <Button onClick={handleAdd}>Créer le ticket</Button>
+                <Button type="button" onClick={handleAdd}>Créer le ticket</Button>
               </DialogFooter>
             </div>
           </DialogContent>
@@ -394,7 +394,7 @@ const Tickets = () => {
               </div>
             </div>
             <DialogFooter>
-              <Button onClick={handleEdit}>Enregistrer</Button>
+              <Button type="button" onClick={handleEdit}>Enregistrer</Button>
             </DialogFooter>
           </div>
         </DialogContent>
