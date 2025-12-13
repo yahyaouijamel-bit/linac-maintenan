@@ -131,12 +131,12 @@ const Maintenance = () => {
   const overdueTasks = tasks.filter((t) => t.status === "En retard");
   const completedTasks = tasks.filter((t) => t.status === "Terminé");
 
-  const TaskForm = ({ onSubmit }: { onSubmit: () => void }) => (
-    <div className="space-y-4">
+  const renderFormFields = (prefix: string) => (
+    <>
       <div className="space-y-2">
-        <Label htmlFor="task">Description de la tâche</Label>
+        <Label htmlFor={`${prefix}-task`}>Description de la tâche</Label>
         <Input
-          id="task"
+          id={`${prefix}-task`}
           value={formData.task}
           onChange={(e) => setFormData({ ...formData, task: e.target.value })}
           placeholder="Ex: Calibration mensuelle du faisceau"
@@ -144,7 +144,7 @@ const Maintenance = () => {
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="equipment">Équipement</Label>
+          <Label htmlFor={`${prefix}-equipment`}>Équipement</Label>
           <Select
             value={formData.equipmentId}
             onValueChange={(value) =>
@@ -164,9 +164,9 @@ const Maintenance = () => {
           </Select>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="dueDate">Date d'échéance</Label>
+          <Label htmlFor={`${prefix}-dueDate`}>Date d'échéance</Label>
           <Input
-            id="dueDate"
+            id={`${prefix}-dueDate`}
             type="date"
             value={formData.dueDate}
             onChange={(e) =>
@@ -176,7 +176,7 @@ const Maintenance = () => {
         </div>
       </div>
       <div className="space-y-2">
-        <Label htmlFor="status">Statut</Label>
+        <Label htmlFor={`${prefix}-status`}>Statut</Label>
         <Select
           value={formData.status}
           onValueChange={(value: MaintenanceStatus) =>
@@ -193,10 +193,7 @@ const Maintenance = () => {
           </SelectContent>
         </Select>
       </div>
-      <DialogFooter>
-        <Button type="button" onClick={onSubmit}>Enregistrer</Button>
-      </DialogFooter>
-    </div>
+    </>
   );
 
   const TaskTable = ({ items }: { items: MaintenanceTask[] }) => (
@@ -272,7 +269,12 @@ const Maintenance = () => {
                 Créez une nouvelle tâche de maintenance préventive.
               </DialogDescription>
             </DialogHeader>
-            <TaskForm onSubmit={handleAdd} />
+            <div className="space-y-4">
+              {renderFormFields("add")}
+              <DialogFooter>
+                <Button type="button" onClick={handleAdd}>Enregistrer</Button>
+              </DialogFooter>
+            </div>
           </DialogContent>
         </Dialog>
       </PageHeader>
@@ -326,7 +328,12 @@ const Maintenance = () => {
               Modifiez les informations de la tâche de maintenance.
             </DialogDescription>
           </DialogHeader>
-          <TaskForm onSubmit={handleEdit} />
+          <div className="space-y-4">
+            {renderFormFields("edit")}
+            <DialogFooter>
+              <Button type="button" onClick={handleEdit}>Enregistrer</Button>
+            </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
 
