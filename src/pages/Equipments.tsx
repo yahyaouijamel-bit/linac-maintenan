@@ -142,76 +142,6 @@ const Equipments = () => {
     );
   }
 
-  const EquipmentForm = ({ onSubmit }: { onSubmit: () => void }) => (
-    <div className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="name">Nom de l'équipement</Label>
-        <Input
-          id="name"
-          value={formData.name}
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          placeholder="Linac Elekta Versa HD"
-        />
-      </div>
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="model">Modèle</Label>
-          <Input
-            id="model"
-            value={formData.model}
-            onChange={(e) => setFormData({ ...formData, model: e.target.value })}
-            placeholder="Versa HD"
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="serial">Numéro de série</Label>
-          <Input
-            id="serial"
-            value={formData.serialNumber}
-            onChange={(e) =>
-              setFormData({ ...formData, serialNumber: e.target.value })
-            }
-            placeholder="VHD-2023-001"
-          />
-        </div>
-      </div>
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="date">Date de mise en service</Label>
-          <Input
-            id="date"
-            type="date"
-            value={formData.commissioningDate}
-            onChange={(e) =>
-              setFormData({ ...formData, commissioningDate: e.target.value })
-            }
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="status">Statut</Label>
-          <Select
-            value={formData.status}
-            onValueChange={(value: EquipmentStatus) =>
-              setFormData({ ...formData, status: value })
-            }
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Opérationnel">Opérationnel</SelectItem>
-              <SelectItem value="En Maintenance">En Maintenance</SelectItem>
-              <SelectItem value="En Panne">En Panne</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-      <DialogFooter>
-        <Button type="button" onClick={onSubmit}>Enregistrer</Button>
-      </DialogFooter>
-    </div>
-  );
-
   return (
     <>
       <PageHeader
@@ -236,7 +166,73 @@ const Equipments = () => {
                 Remplissez les informations du nouvel équipement.
               </DialogDescription>
             </DialogHeader>
-            <EquipmentForm onSubmit={handleAdd} />
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="add-name">Nom de l'équipement</Label>
+                <Input
+                  id="add-name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="Linac Elekta Versa HD"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="add-model">Modèle</Label>
+                  <Input
+                    id="add-model"
+                    value={formData.model}
+                    onChange={(e) => setFormData({ ...formData, model: e.target.value })}
+                    placeholder="Versa HD"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="add-serial">Numéro de série</Label>
+                  <Input
+                    id="add-serial"
+                    value={formData.serialNumber}
+                    onChange={(e) =>
+                      setFormData({ ...formData, serialNumber: e.target.value })
+                    }
+                    placeholder="VHD-2023-001"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="add-date">Date de mise en service</Label>
+                  <Input
+                    id="add-date"
+                    type="date"
+                    value={formData.commissioningDate}
+                    onChange={(e) =>
+                      setFormData({ ...formData, commissioningDate: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="add-status">Statut</Label>
+                  <Select
+                    value={formData.status}
+                    onValueChange={(value: EquipmentStatus) =>
+                      setFormData({ ...formData, status: value })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Opérationnel">Opérationnel</SelectItem>
+                      <SelectItem value="En Maintenance">En Maintenance</SelectItem>
+                      <SelectItem value="En Panne">En Panne</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button type="button" onClick={handleAdd}>Enregistrer</Button>
+              </DialogFooter>
+            </div>
           </DialogContent>
         </Dialog>
       </PageHeader>
@@ -301,7 +297,73 @@ const Equipments = () => {
               Modifiez les informations de l'équipement.
             </DialogDescription>
           </DialogHeader>
-          <EquipmentForm onSubmit={handleEdit} />
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-name">Nom de l'équipement</Label>
+              <Input
+                id="edit-name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                placeholder="Linac Elekta Versa HD"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-model">Modèle</Label>
+                <Input
+                  id="edit-model"
+                  value={formData.model}
+                  onChange={(e) => setFormData({ ...formData, model: e.target.value })}
+                  placeholder="Versa HD"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-serial">Numéro de série</Label>
+                <Input
+                  id="edit-serial"
+                  value={formData.serialNumber}
+                  onChange={(e) =>
+                    setFormData({ ...formData, serialNumber: e.target.value })
+                  }
+                  placeholder="VHD-2023-001"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-date">Date de mise en service</Label>
+                <Input
+                  id="edit-date"
+                  type="date"
+                  value={formData.commissioningDate}
+                  onChange={(e) =>
+                    setFormData({ ...formData, commissioningDate: e.target.value })
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-status">Statut</Label>
+                <Select
+                  value={formData.status}
+                  onValueChange={(value: EquipmentStatus) =>
+                    setFormData({ ...formData, status: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Opérationnel">Opérationnel</SelectItem>
+                    <SelectItem value="En Maintenance">En Maintenance</SelectItem>
+                    <SelectItem value="En Panne">En Panne</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="button" onClick={handleEdit}>Enregistrer</Button>
+            </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
 
