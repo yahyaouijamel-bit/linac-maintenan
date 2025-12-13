@@ -235,7 +235,7 @@ const WorkOrders = () => {
                 </div>
               </div>
               <DialogFooter>
-                <Button onClick={handleAdd}>Créer</Button>
+                <Button type="button" onClick={handleAdd}>Créer</Button>
               </DialogFooter>
             </div>
           </DialogContent>
@@ -421,7 +421,7 @@ const WorkOrders = () => {
               </div>
             </div>
             <DialogFooter>
-              <Button onClick={handleEdit}>Enregistrer</Button>
+              <Button type="button" onClick={handleEdit}>Enregistrer</Button>
             </DialogFooter>
           </div>
         </DialogContent>
